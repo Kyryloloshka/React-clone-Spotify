@@ -1,9 +1,9 @@
-import { useState } from "react";
-import PlaylistButtonPlay from "./PlaylistButtonPlay";
-import PlaylistCover from "./PlaylistCover";
-import PlaylistTitle from "./PlaylistTitle";
-import PlaylistDescription from "./PlaylistDescription";
-import PlaylistContextMenu from "./PlaylistContextMenu";
+import { useLayoutEffect, useEffect, useRef, useState } from 'react';
+import PlaylistCover from './PlaylistCover';
+import PlaylistButtonPlay from './PlaylistButtonPlay';
+import PlaylistTitle from './PlaylistTitle';
+import PlaylistDescription from './PlaylistDescription';
+import PlaylistContextMenu from './PlaylistContextMenu';
 
 const menuItems = [
 	{
@@ -18,7 +18,7 @@ const menuItems = [
 			{
 				label: 'Embed playlist',
 			},
-		]
+		],
 	},
 	{
 		label: 'About recommendations',
@@ -26,33 +26,88 @@ const menuItems = [
 	{
 		label: 'Open in Desktop app',
 	},
-]
+];
 
-function Playlist({ classes, coverUrl, title, description }) {
+const clickPosition = { x: null, y: null };
+
+function Playlist({ classes, coverUrl, title, description, toggleScrolling }) {
 	const [isContextMenuOpen, setIsContextMenuOpen] = useState(false);
-	// const isContextMenuOpen = contextMenuState[0];
-	// const setIsContextMenuOpen = contextMenuState[1];
-	function openContextMenu(event) {
-		event.preventDefault()
-		setIsContextMenuOpen(true)
-	}
-	function closeContextMenu() {
+	const contextMenuRef = useRef(null);
+	const bgClasses = isContextMenuOpen ? 'bg-[#272727]' : 'bg-[#181818] hover:bg-[#272727]'
 
+	function updateContextMenuPosition() {
+		contextMenuRef.current.style.top = `${clickPosition.y}px`
+		contextMenuRef.current.style.left = `${clickPosition.x}px`
+	}
+
+	useLayoutEffect(() => {
+		toggleScrolling(!isContextMenuOpen);
+		if (isContextMenuOpen) {
+			updateContextMenuPosition()
+		}
+	})
+	useEffect(() => {
+
+		if (!isContextMenuOpen) return;
+
+		function handleClickAway(event) {
+			if (!contextMenuRef.current.contains(event.target)) {
+				closeContextMenu();
+			}
+		}
+
+		function handleEsc(event) {
+			if (event.keyCode === 27) {
+				closeContextMenu();
+			}
+		}
+		document.addEventListener('mousedown', handleClickAway);
+		document.addEventListener('keydown', handleEsc);
+
+		return () => {
+			document.removeEventListener('mousedown', handleClickAway);
+			document.removeEventListener('keydown', handleEsc);
+		};
+	});
+
+
+	function openContextMenu(event) {
+		event.preventDefault();
+
+		clickPosition.x = event.clientX
+		clickPosition.y = event.clientY
+
+
+
+		setIsContextMenuOpen(true);
+	}
+
+	function closeContextMenu() {
 		setIsContextMenuOpen(false);
 	}
 
 	return (
-		<a href="/" onContextMenu={openContextMenu}
-			className={`relative p-4 rounded-md bg-[#181818] hover:bg-[#272727] duration-200 group ${classes}`}>
+		<a
+			href="/"
+			className={`relative p-4 rounded-md duration-200 group ${classes} ${bgClasses}`}
+			onClick={(event) => event.preventDefault()}
+			onContextMenu={openContextMenu}
+		>
 			<div className="relative">
 				<PlaylistCover url={coverUrl} />
 				<PlaylistButtonPlay />
 			</div>
 			<PlaylistTitle title={title} />
 			<PlaylistDescription description={description} />
-			{isContextMenuOpen && <PlaylistContextMenu menuItems={menuItems} classes={'absolute top-9 left-9 bg-[#282828] text-[#eaeaea] text-sm divide-y divide-[#3e3e3e] p-1 rounded shadow-xl cursor-default whitespace-nowrap z-10'} onClose={closeContextMenu} />}
+			{isContextMenuOpen && (
+				<PlaylistContextMenu
+					ref={contextMenuRef}
+					menuItems={menuItems}
+					classes="fixed bg-[#282828] text-[#eaeaea] text-sm divide-y divide-[#3e3e3e] p-1 rounded shadow-xl cursor-default whitespace-nowrap z-10"
+				/>
+			)}
 		</a>
-	)
+	);
 }
 
-export default Playlist
+export default Playlist;
