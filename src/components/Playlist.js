@@ -1,97 +1,83 @@
-import { useLayoutEffect, useEffect, useRef, useState } from 'react';
+import { useEffect, useState, useLayoutEffect } from 'react';
+import useMenu from '../hooks/useContextMenu';
 import PlaylistCover from './PlaylistCover';
 import PlaylistButtonPlay from './PlaylistButtonPlay';
 import PlaylistTitle from './PlaylistTitle';
 import PlaylistDescription from './PlaylistDescription';
 import PlaylistContextMenu from './PlaylistContextMenu';
 
-const menuItems = [
-	{
-		label: 'Add to Your Library',
-	},
-	{
-		label: 'Share',
-		subMenuItems: [
+
+function Playlist({ classes, coverUrl, title, description, showToast, toggleScrolling, }) {
+
+	function generateMenuItems(isAlternate = false) {
+		return [
 			{
-				label: 'Copy link to playlist',
+				label: 'Add to Your Library',
+				action: () => {
+					menu.close();
+					document.querySelector('nav a:nth-child(4)').click();
+				},
 			},
 			{
-				label: 'Embed playlist',
+				label: 'Share',
+				submenuItems: [
+					{
+						label: isAlternate ? 'Copy KyryloM URI' : 'Copy link to playlist',
+						action: () => {
+							navigator.clipboard.writeText(title).then(() => {
+								menu.close()
+								showToast('Link copied to clipboard')
+							})
+						},
+						classes: '',//'min-w-[181px]'
+					},
+					{
+						label: 'Embed playlist',
+					},
+				],
 			},
-		],
-	},
-	{
-		label: 'About recommendations',
-	},
-	{
-		label: 'Open in Desktop app',
-	},
-];
-
-const clickPosition = { x: null, y: null };
-
-function Playlist({ classes, coverUrl, title, description, toggleScrolling }) {
-	const [isContextMenuOpen, setIsContextMenuOpen] = useState(false);
-	const contextMenuRef = useRef(null);
-	const bgClasses = isContextMenuOpen ? 'bg-[#272727]' : 'bg-[#181818] hover:bg-[#272727]'
-
-	function updateContextMenuPosition() {
-		contextMenuRef.current.style.top = `${clickPosition.y}px`
-		contextMenuRef.current.style.left = `${clickPosition.x}px`
+			{
+				label: 'About recommendations',
+			},
+			{
+				label: 'Open in Desktop app',
+			},
+		];
 	}
 
-	useLayoutEffect(() => {
-		toggleScrolling(!isContextMenuOpen);
-		if (isContextMenuOpen) {
-			updateContextMenuPosition()
-		}
-	})
+	const [menuItems, setMenuItems] = useState(generateMenuItems)
+
+	const menu = useMenu(menuItems);
+
+	useLayoutEffect(() => toggleScrolling(!menu.isOpen))
+
 	useEffect(() => {
+		if (!menu.isOpen) return;
 
-		if (!isContextMenuOpen) return;
-
-		function handleClickAway(event) {
-			if (!contextMenuRef.current.contains(event.target)) {
-				closeContextMenu();
-			}
+		function handleAltKeydown({ key }) {
+			if (key === 'Alt') setMenuItems(generateMenuItems(true))
 		}
-
-		function handleEsc(event) {
-			if (event.keyCode === 27) {
-				closeContextMenu();
-			}
+		function handleAltKeyup({ key }) {
+			if (key === 'Alt') setMenuItems(generateMenuItems())
 		}
-		document.addEventListener('mousedown', handleClickAway);
-		document.addEventListener('keydown', handleEsc);
-
+		document.addEventListener('keydown', handleAltKeydown)
+		document.addEventListener('keyup', handleAltKeyup)
 		return () => {
-			document.removeEventListener('mousedown', handleClickAway);
-			document.removeEventListener('keydown', handleEsc);
-		};
+			document.removeEventListener('keydown', handleAltKeydown)
+			document.removeEventListener('keyup', handleAltKeyup)
+		}
 	});
 
 
-	function openContextMenu(event) {
-		event.preventDefault();
 
-		clickPosition.x = event.clientX
-		clickPosition.y = event.clientY
-
-
-
-		setIsContextMenuOpen(true);
-	}
-
-	function closeContextMenu() {
-		setIsContextMenuOpen(false);
-	}
+	const bgClasses = menu.isOpen ? 'bg-[#272727]' : 'bg-[#181818] hover:bg-[#272727]';
 
 	return (
 		<a
 			href="/"
 			className={`relative p-4 rounded-md duration-200 group ${classes} ${bgClasses}`}
 			onClick={(event) => event.preventDefault()}
-			onContextMenu={openContextMenu}
+			onContextMenu={menu.open}
 		>
 			<div className="relative">
 				<PlaylistCover url={coverUrl} />
@@ -99,11 +85,11 @@ function Playlist({ classes, coverUrl, title, description, toggleScrolling }) {
 			</div>
 			<PlaylistTitle title={title} />
 			<PlaylistDescription description={description} />
-			{isContextMenuOpen && (
+			{menu.isOpen && (
 				<PlaylistContextMenu
-					ref={contextMenuRef}
-					menuItems={menuItems}
-					classes="fixed bg-[#282828] text-[#eaeaea] text-sm divide-y divide-[#3e3e3e] p-1 rounded shadow-xl cursor-default whitespace-nowrap z-10"
+					ref={menu.ref}
+					menuItems={menu.items}
+					classes="fixed divide-y divide-[#3e3e3e]"
 				/>
 			)}
 		</a>

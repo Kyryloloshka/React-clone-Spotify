@@ -5,12 +5,31 @@ import TheHeader from './components/TheHeader';
 import TheMain from './components/TheMain';
 import TheRegistration from './components/TheRegistration';
 import { useEffect, useRef } from 'react';
+import BaseToast from './components/BaseToast';
+import BasePopover from './components/BasePopover';
 
 
 function App() {
+	const contentWrapperRef = useRef();
+	const toastRef = useRef()
+	const popoverRef = useRef()
 
-	const contentWrapperRef = useRef(null);
 	let isScrollingEnabled = true;
+
+	useEffect(() => {
+		const contentWrapper = contentWrapperRef.current;
+
+		contentWrapper.addEventListener('wheel', handleScrolling);
+
+		return () => contentWrapper.removeEventListener('wheel', handleScrolling);
+	});
+
+	function showToast(message) {
+		toastRef.current.show(message);
+	}
+	function showPopover(title, description, target, offset) {
+		popoverRef.current.show(title, description, target, offset);
+	}
 
 	function toggleScrolling(isEnabled) {
 		isScrollingEnabled = isEnabled;
@@ -23,26 +42,20 @@ function App() {
 		event.stopPropagation();
 	}
 
-	useEffect(() => {
-		const contentWrapper = contentWrapperRef.current;
-
-		contentWrapper.addEventListener('wheel', handleScrolling);
-
-		return () => contentWrapper.removeEventListener('wheel', handleScrolling);
-	});
-
 	return (
 		<>
-			<div className="flex flex-grow overflow-auto">
-				<TheSidebar />
+			<div className="flex grow overflow-auto">
+				<TheSidebar showPopover={showPopover} />
 				<TheSidebarOverlay />
 				<div className="flex-1 overflow-auto" ref={contentWrapperRef}>
 					<TheHeader />
 
-					<TheMain toggleScrolling={toggleScrolling} />
+					<TheMain showToast={showToast} toggleScrolling={toggleScrolling} />
 				</div>
 			</div>
 			<TheRegistration />
+			<BaseToast ref={toastRef} />
+			<BasePopover ref={popoverRef} />
 		</>
 	);
 }

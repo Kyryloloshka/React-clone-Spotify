@@ -1,6 +1,5 @@
 import { Bars3Icon, ChevronLeftIcon, ChevronRightIcon } from '@heroicons/react/24/solid'
-import TheButtonRegistration from './TheButtonRegistration';
-import TheButtonLogin from './TheButtonLogin';
+import BaseButton from './BaseButton';
 
 function TheHeader() {
 	return (
@@ -18,8 +17,8 @@ function TheHeader() {
 				</a>
 			</div>
 			<div>
-				<TheButtonRegistration />
-				<TheButtonLogin />
+				<BaseButton classes='text-gray-400 hover:text-white'>Sign up</BaseButton>
+				<BaseButton primary>Log in</BaseButton>
 			</div>
 		</header>
 	)
