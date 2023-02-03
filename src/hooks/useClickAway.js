@@ -1,16 +1,14 @@
-import { useEffect } from "react";
+import useEvent from "./useEvent";
 
-function useClickAway(ref, handle, shouldHandle = () => true) {
-	useEffect(() => {
+function useClickAway(ref, handler, shouldHandle = true) {
 
-		function handleMousedown(event) {
-			if (shouldHandle(event) && !ref.current.contains(event.target)) handle();
-		}
+	useEvent('mousedown', handleMousedown)
 
-		document.addEventListener('mousedown', handleMousedown);
+	function handleMousedown(event) {
+		const handle = shouldHandle instanceof Function ? shouldHandle(event) : shouldHandle
 
-		return () => document.removeEventListener('mousedown', handleMousedown);
-	});
+		if (handle && !ref.current.contains(event.target)) handler();
+	}
 }
 
 export default useClickAway

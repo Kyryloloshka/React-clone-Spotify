@@ -1,13 +1,18 @@
-import { useEffect, useState, useLayoutEffect } from 'react';
+import { useState, useLayoutEffect } from 'react';
 import useMenu from '../hooks/useContextMenu';
 import PlaylistCover from './PlaylistCover';
 import PlaylistButtonPlay from './PlaylistButtonPlay';
 import PlaylistTitle from './PlaylistTitle';
 import PlaylistDescription from './PlaylistDescription';
 import PlaylistContextMenu from './PlaylistContextMenu';
+import useEvent from '../hooks/useEvent';
+import TheModalRecommendations from './TheModalRecommendations';
+import useModal from '../hooks/useModal';
+import TheModalEmbedPlaylist from './TheModalEmbedPlaylist';
 
 
-function Playlist({ classes, coverUrl, title, description, showToast, openModal, toggleScrolling, }) {
+
+function Playlist({ classes, coverUrl, title, description, showToast, toggleScrolling, }) {
 
 	function generateMenuItems(isAlternate = false) {
 		return [
@@ -33,6 +38,10 @@ function Playlist({ classes, coverUrl, title, description, showToast, openModal,
 					},
 					{
 						label: 'Embed playlist',
+						action: () => {
+							menu.close()
+							embedPlaylistModal.open();
+						}
 					},
 				],
 			},
@@ -40,7 +49,7 @@ function Playlist({ classes, coverUrl, title, description, showToast, openModal,
 				label: 'About recommendations',
 				action: () => {
 					menu.close()
-					openModal();
+					recommendationModal.open();
 				},
 			},
 			{
@@ -50,27 +59,21 @@ function Playlist({ classes, coverUrl, title, description, showToast, openModal,
 	}
 
 	const [menuItems, setMenuItems] = useState(generateMenuItems)
-
 	const menu = useMenu(menuItems);
+	const recommendationModal = useModal();
+	const embedPlaylistModal = useModal();
 
 	useLayoutEffect(() => toggleScrolling(!menu.isOpen))
 
-	useEffect(() => {
-		if (!menu.isOpen) return;
+	useEvent('keydown', handleAltKeydown, menu.isOpen)
+	useEvent('keyup', handleAltKeyup, menu.isOpen)
 
-		function handleAltKeydown({ key }) {
-			if (key === 'Alt') setMenuItems(generateMenuItems(true))
-		}
-		function handleAltKeyup({ key }) {
-			if (key === 'Alt') setMenuItems(generateMenuItems())
-		}
-		document.addEventListener('keydown', handleAltKeydown)
-		document.addEventListener('keyup', handleAltKeyup)
-		return () => {
-			document.removeEventListener('keydown', handleAltKeydown)
-			document.removeEventListener('keyup', handleAltKeyup)
-		}
-	});
+	function handleAltKeydown({ key }) {
+		if (key === 'Alt') setMenuItems(generateMenuItems(true))
+	}
+	function handleAltKeyup({ key }) {
+		if (key === 'Alt') setMenuItems(generateMenuItems())
+	}
 
 
 
@@ -96,6 +99,8 @@ function Playlist({ classes, coverUrl, title, description, showToast, openModal,
 					classes="fixed divide-y divide-[#3e3e3e]"
 				/>
 			)}
+			{recommendationModal.isOpen && <TheModalRecommendations onClose={recommendationModal.close} />}
+			{embedPlaylistModal.isOpen && <TheModalEmbedPlaylist onClose={embedPlaylistModal.close} />}
 		</a>
 	);
 }
