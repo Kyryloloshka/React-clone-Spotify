@@ -1,5 +1,5 @@
-import { useEffect, useState, useRef } from 'react';
-import { MIN_DESKTOP_WIDTH, debounce } from '../utils'
+import { useState, useEffect, useRef } from 'react';
+import { MIN_DESKTOP_WIDTH, debounce } from '../utils';
 
 function isCurrentWindowWidthSmall() {
 	return window.innerWidth < MIN_DESKTOP_WIDTH;
@@ -27,21 +27,21 @@ function usePopoverPosition(ref, screenChangeCallback) {
 				300
 			);
 		}
+
 		const debounceResize = debounce.bind(null, handleResize, 300);
 
 		window.addEventListener('resize', debounceResize);
 
 		return () => window.removeEventListener('resize', debounceResize);
-
-	})
+	});
 
 	function move(target, offset) {
-		offset = offset || calculateTargetOffset(target)
+		offset = offset || calculateTargetOffset(target);
+
 		ref.current.style.top = `${offset.top}px`;
 		ref.current.style.left = `${offset.left}px`;
 
 		setTarget(target);
-
 	}
 
 	function calculateTargetOffset(target) {
@@ -61,7 +61,12 @@ function usePopoverPosition(ref, screenChangeCallback) {
 		return isCurrentWindowWidthBig() && isSmallScreen;
 	}
 
-	return move, target, setTarget, isSmallScreen
+	return {
+		move,
+		target,
+		setTarget,
+		isSmallScreen,
+	};
 }
 
-export default usePopoverPosition
+export default usePopoverPosition;

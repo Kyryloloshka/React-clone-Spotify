@@ -1,18 +1,18 @@
-import './App.css';
+import { useEffect, useRef, useState } from 'react';
+import BasePopover from './components/BasePopover';
+import BaseToast from './components/BaseToast';
 import TheSidebar from './components/TheSidebar';
 import TheSidebarOverlay from './components/TheSidebarOverlay';
 import TheHeader from './components/TheHeader';
 import TheMain from './components/TheMain';
 import TheRegistration from './components/TheRegistration';
-import { useEffect, useRef } from 'react';
-import BaseToast from './components/BaseToast';
-import BasePopover from './components/BasePopover';
-
+import BaseModal from './components/BaseModal';
 
 function App() {
+	const [isModalOpen, setIsModalOpen] = useState(false);
 	const contentWrapperRef = useRef();
-	const toastRef = useRef()
-	const popoverRef = useRef()
+	const popoverRef = useRef();
+	const toastRef = useRef();
 
 	let isScrollingEnabled = true;
 
@@ -24,11 +24,19 @@ function App() {
 		return () => contentWrapper.removeEventListener('wheel', handleScrolling);
 	});
 
-	function showToast(message) {
-		toastRef.current.show(message);
+	function openModal() {
+		setIsModalOpen(true)
 	}
+	function closeModal() {
+		setIsModalOpen(false)
+	}
+
 	function showPopover(title, description, target, offset) {
 		popoverRef.current.show(title, description, target, offset);
+	}
+
+	function showToast(message) {
+		toastRef.current.show(message);
 	}
 
 	function toggleScrolling(isEnabled) {
@@ -49,13 +57,13 @@ function App() {
 				<TheSidebarOverlay />
 				<div className="flex-1 overflow-auto" ref={contentWrapperRef}>
 					<TheHeader />
-
-					<TheMain showToast={showToast} toggleScrolling={toggleScrolling} />
+					<TheMain showToast={showToast} openModal={openModal} toggleScrolling={toggleScrolling} />
 				</div>
 			</div>
 			<TheRegistration />
 			<BaseToast ref={toastRef} />
 			<BasePopover ref={popoverRef} />
+			{isModalOpen && <BaseModal onClose={closeModal}></BaseModal>}
 		</>
 	);
 }

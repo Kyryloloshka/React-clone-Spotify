@@ -7,7 +7,7 @@ import PlaylistDescription from './PlaylistDescription';
 import PlaylistContextMenu from './PlaylistContextMenu';
 
 
-function Playlist({ classes, coverUrl, title, description, showToast, toggleScrolling, }) {
+function Playlist({ classes, coverUrl, title, description, showToast, openModal, toggleScrolling, }) {
 
 	function generateMenuItems(isAlternate = false) {
 		return [
@@ -38,6 +38,10 @@ function Playlist({ classes, coverUrl, title, description, showToast, toggleScro
 			},
 			{
 				label: 'About recommendations',
+				action: () => {
+					menu.close()
+					openModal();
+				},
 			},
 			{
 				label: 'Open in Desktop app',
