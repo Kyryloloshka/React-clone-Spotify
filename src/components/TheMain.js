@@ -100,6 +100,7 @@ function TheMain({ showToast, toggleScrolling }) {
 							<Playlist
 								key={playlist.title}
 								{...playlist}
+								showToast={showToast}
 								toggleScrolling={toggleScrolling}
 							/>
 						))}
@@ -121,6 +122,7 @@ function TheMain({ showToast, toggleScrolling }) {
 							<Playlist
 								key={playlist.title}
 								{...playlist}
+								showToast={showToast}
 								toggleScrolling={toggleScrolling}
 							/>
 						))}

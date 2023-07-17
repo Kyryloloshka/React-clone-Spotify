@@ -12,5 +12,4 @@ function useModal() {
 	return { open, close, isOpen }
 }
 
-
 export default useModal;
